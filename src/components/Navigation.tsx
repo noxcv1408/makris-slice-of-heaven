@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import makrisLogo from '@/assets/makris-logo.jpg';
 
 const navLinks = [
   { href: '#home', label: 'Home' },
@@ -35,7 +36,7 @@ export const Navigation = () => {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'bg-background/95 backdrop-blur-md shadow-lg py-2'
+          ? 'bg-background shadow-lg py-2'
           : 'bg-transparent py-4'
       }`}
     >
@@ -44,33 +45,40 @@ export const Navigation = () => {
           {/* Logo */}
           <button
             onClick={() => scrollToSection('#home')}
-            className="flex items-center gap-2"
+            className="flex items-center gap-3"
           >
-            <span className="text-2xl md:text-3xl font-display font-bold text-primary">
-              Makris
-            </span>
-            <span className={`text-lg md:text-xl font-display ${isScrolled ? 'text-foreground' : 'text-white'}`}>
-              Pizza&Love
-            </span>
+            <img 
+              src={makrisLogo}
+              alt="Makris Logo"
+              className="w-10 h-10 rounded-full object-cover border-2 border-primary"
+            />
+            <div className="flex flex-col items-start">
+              <span className="text-lg md:text-xl font-script text-primary leading-tight">
+                Makris
+              </span>
+              <span className={`text-xs font-display tracking-widest leading-tight ${isScrolled ? 'text-foreground' : 'text-primary-foreground'}`}>
+                PIZZA & LOVE
+              </span>
+            </div>
           </button>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => (
               <button
                 key={link.href}
                 onClick={() => scrollToSection(link.href)}
-                className={`font-body text-sm uppercase tracking-wider transition-colors hover:text-primary ${
-                  isScrolled ? 'text-foreground' : 'text-white'
+                className={`font-display text-sm tracking-widest transition-colors hover:text-primary ${
+                  isScrolled ? 'text-foreground' : 'text-primary-foreground'
                 }`}
               >
-                {link.label}
+                {link.label.toUpperCase()}
               </button>
             ))}
             <a href="tel:+390815559226">
-              <Button size="sm" className="gap-2 font-body">
+              <Button size="sm" className="gap-2 font-display tracking-wider bg-primary text-primary-foreground">
                 <Phone className="w-4 h-4" />
-                Chiama
+                CHIAMA
               </Button>
             </a>
           </div>
@@ -78,7 +86,7 @@ export const Navigation = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`md:hidden p-2 ${isScrolled ? 'text-foreground' : 'text-white'}`}
+            className={`md:hidden p-2 ${isScrolled ? 'text-foreground' : 'text-primary-foreground'}`}
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -86,21 +94,21 @@ export const Navigation = () => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-background shadow-lg animate-fade-in">
-            <div className="flex flex-col p-4 gap-4">
+          <div className="md:hidden absolute top-full left-0 right-0 bg-background shadow-lg animate-fade-in border-t-4 border-primary">
+            <div className="flex flex-col p-4 gap-2">
               {navLinks.map((link) => (
                 <button
                   key={link.href}
                   onClick={() => scrollToSection(link.href)}
-                  className="font-body text-foreground py-2 text-left hover:text-primary transition-colors"
+                  className="font-display text-foreground py-3 text-left hover:text-primary transition-colors tracking-widest border-b border-border"
                 >
-                  {link.label}
+                  {link.label.toUpperCase()}
                 </button>
               ))}
-              <a href="tel:+390815559226">
-                <Button className="w-full gap-2 font-body">
+              <a href="tel:+390815559226" className="mt-2">
+                <Button className="w-full gap-2 font-display tracking-wider">
                   <Phone className="w-4 h-4" />
-                  Chiama Ora
+                  CHIAMA ORA
                 </Button>
               </a>
             </div>

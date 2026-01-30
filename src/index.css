@@ -2,80 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Italian Pizzeria Design System - Makris Pizza&Love */
+/* Makris Pizza&Love - Retro American Diner Design System */
 
 @layer base {
   :root {
-    /* Italian Flag inspired palette with warm terracotta tones */
-    --background: 30 20% 98%;
-    --foreground: 20 30% 15%;
+    /* Retro Diner palette - Red, Black, White, Cream */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 8%;
 
-    --card: 30 25% 97%;
-    --card-foreground: 20 30% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 8%;
 
-    --popover: 30 25% 97%;
-    --popover-foreground: 20 30% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 8%;
 
-    /* Rich Italian Red */
-    --primary: 4 80% 50%;
+    /* Makris Red */
+    --primary: 355 85% 45%;
     --primary-foreground: 0 0% 100%;
 
-    /* Warm Cream */
-    --secondary: 35 40% 92%;
-    --secondary-foreground: 20 30% 15%;
+    /* Cream Background */
+    --secondary: 45 30% 96%;
+    --secondary-foreground: 0 0% 8%;
 
-    /* Muted Olive */
-    --muted: 35 20% 90%;
-    --muted-foreground: 20 15% 40%;
+    /* Muted Gray */
+    --muted: 0 0% 92%;
+    --muted-foreground: 0 0% 40%;
 
-    /* Italian Green */
-    --accent: 145 45% 35%;
+    /* Black Accent */
+    --accent: 0 0% 8%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 30 20% 85%;
-    --input: 30 20% 85%;
-    --ring: 4 80% 50%;
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 355 85% 45%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Custom tokens for pizzeria */
-    --gold: 43 90% 55%;
-    --terracotta: 20 60% 50%;
-    --olive: 80 30% 35%;
-    --cream: 40 50% 96%;
+    /* Custom tokens */
+    --gold: 48 95% 50%;
+    --checker-black: 0 0% 15%;
+    --checker-white: 0 0% 95%;
+    --cream: 45 40% 95%;
+    --diner-red: 355 85% 45%;
   }
 
   .dark {
-    --background: 20 25% 8%;
-    --foreground: 30 20% 95%;
+    --background: 0 0% 6%;
+    --foreground: 0 0% 95%;
 
-    --card: 20 25% 12%;
-    --card-foreground: 30 20% 95%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 20 25% 12%;
-    --popover-foreground: 30 20% 95%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 4 75% 55%;
+    --primary: 355 80% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 20 20% 18%;
-    --secondary-foreground: 30 20% 95%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 20 20% 20%;
-    --muted-foreground: 30 15% 60%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 145 40% 40%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 0 0% 95%;
+    --accent-foreground: 0 0% 8%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 20 20% 20%;
-    --input: 20 20% 20%;
-    --ring: 4 75% 55%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 355 80% 50%;
   }
 }
 
@@ -86,7 +87,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Playfair Display', Georgia, serif;
+    font-family: 'Lato', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
   html {
@@ -97,11 +98,38 @@
 /* Typography */
 @layer components {
   .font-display {
-    font-family: 'Playfair Display', Georgia, serif;
+    font-family: 'Bebas Neue', 'Impact', sans-serif;
+    letter-spacing: 0.02em;
+  }
+
+  .font-script {
+    font-family: 'Pacifico', cursive;
   }
 
   .font-body {
     font-family: 'Lato', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}
+
+/* Checkered Pattern */
+@layer utilities {
+  .checkered-pattern {
+    background-image: 
+      linear-gradient(45deg, hsl(var(--checker-black)) 25%, transparent 25%),
+      linear-gradient(-45deg, hsl(var(--checker-black)) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, hsl(var(--checker-black)) 75%),
+      linear-gradient(-45deg, transparent 75%, hsl(var(--checker-black)) 75%);
+    background-size: 24px 24px;
+    background-position: 0 0, 0 12px, 12px -12px, -12px 0px;
+    background-color: hsl(var(--checker-white));
+  }
+
+  .checkered-border {
+    border-image: repeating-linear-gradient(
+      90deg,
+      hsl(var(--checker-black)) 0 12px,
+      hsl(var(--checker-white)) 12px 24px
+    ) 12;
   }
 }
 
@@ -136,39 +164,26 @@
   }
 
   .hover-lift:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px -15px hsl(var(--primary) / 0.3);
-  }
-
-  .gradient-italian {
-    background: linear-gradient(135deg, 
-      hsl(145 45% 35%) 0%, 
-      hsl(0 0% 100%) 50%, 
-      hsl(4 80% 50%) 100%
-    );
-  }
-
-  .gradient-warm {
-    background: linear-gradient(135deg, 
-      hsl(4 80% 50%) 0%, 
-      hsl(20 60% 50%) 50%,
-      hsl(43 90% 55%) 100%
-    );
+    transform: translateY(-6px);
+    box-shadow: 0 15px 30px -10px hsl(var(--primary) / 0.25);
   }
 
   .gradient-hero {
     background: linear-gradient(180deg, 
-      hsl(20 25% 8% / 0.7) 0%, 
-      hsl(20 25% 8% / 0.4) 50%,
-      hsl(20 25% 8% / 0.8) 100%
+      hsl(0 0% 0% / 0.6) 0%, 
+      hsl(0 0% 0% / 0.3) 50%,
+      hsl(0 0% 0% / 0.7) 100%
     );
   }
 
-  .text-gradient {
-    background: linear-gradient(135deg, hsl(4 80% 50%), hsl(43 90% 55%));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .text-shadow {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  }
+
+  .retro-shadow {
+    box-shadow: 
+      4px 4px 0 0 hsl(var(--checker-black)),
+      -1px -1px 0 0 hsl(var(--checker-white));
   }
 }
 
@@ -225,16 +240,16 @@
 
 @keyframes pulseGlow {
   0%, 100% {
-    box-shadow: 0 0 20px hsl(4 80% 50% / 0.4);
+    box-shadow: 0 0 20px hsl(355 85% 45% / 0.4);
   }
   50% {
-    box-shadow: 0 0 40px hsl(4 80% 50% / 0.6);
+    box-shadow: 0 0 40px hsl(355 85% 45% / 0.6);
   }
 }
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -242,10 +257,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--primary) / 0.6);
-  border-radius: 4px;
+  background: hsl(var(--primary));
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.8);
 }
