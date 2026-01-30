@@ -14,7 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['Playfair Display', 'Georgia', 'serif'],
+        display: ['Bebas Neue', 'Impact', 'sans-serif'],
+        script: ['Pacifico', 'cursive'],
         body: ['Lato', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       colors: {
@@ -52,9 +53,10 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         gold: "hsl(var(--gold))",
-        terracotta: "hsl(var(--terracotta))",
-        olive: "hsl(var(--olive))",
         cream: "hsl(var(--cream))",
+        "diner-red": "hsl(var(--diner-red))",
+        "checker-black": "hsl(var(--checker-black))",
+        "checker-white": "hsl(var(--checker-white))",
       },
       borderRadius: {
         lg: "var(--radius)",

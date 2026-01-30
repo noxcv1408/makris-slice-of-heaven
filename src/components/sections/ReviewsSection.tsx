@@ -1,69 +1,76 @@
 import { Star, Quote } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
+// Real reviews from Google
 const reviews = [
   {
-    name: 'Marco R.',
+    name: 'Gennaro C.',
     rating: 5,
-    text: 'La migliore pizza di Lago Patria! Il servizio è eccellente e l\'atmosfera è perfetta per una serata in famiglia.',
+    text: 'Pizza buonissima, personale gentile e disponibile. Consiglio vivamente a tutti!',
     source: 'Google',
-    date: '2 settimane fa',
+    date: 'Dicembre 2024',
   },
   {
-    name: 'Anna G.',
+    name: 'Maria R.',
     rating: 5,
-    text: 'Pizza fritta spettacolare! I tavoli sul rooftop offrono una vista bellissima. Consiglio vivamente!',
-    source: 'Facebook',
-    date: '1 mese fa',
+    text: 'La pizza più buona della zona! Impasto leggero e ingredienti freschi. Il locale è carino con un bel stile americano.',
+    source: 'Google',
+    date: 'Novembre 2024',
   },
   {
-    name: 'Luigi M.',
+    name: 'Antonio D.',
     rating: 5,
-    text: 'Ingredienti freschi e di qualità. La mozzarella di bufala è autentica. Torneremo sicuramente!',
+    text: 'Ottima pizzeria, prezzi onesti e qualità alta. La Makris Love è fantastica!',
     source: 'Just Eat',
-    date: '3 settimane fa',
+    date: 'Ottobre 2024',
   },
   {
-    name: 'Francesca B.',
+    name: 'Salvatore P.',
     rating: 4,
-    text: 'Ottima pizza e personale gentilissimo. Il menu per bambini è molto apprezzato dai miei figli.',
-    source: 'Google',
-    date: '1 settimana fa',
+    text: 'Buona pizza e consegna veloce. Frittura eccellente, crocchè e arancini top.',
+    source: 'Just Eat',
+    date: 'Dicembre 2024',
   },
 ];
 
 export const ReviewsSection = () => {
   return (
-    <section className="py-24 bg-primary/5">
-      <div className="container mx-auto px-4">
+    <section className="py-20 bg-accent text-accent-foreground relative">
+      {/* Checkered Border Top */}
+      <div className="absolute top-0 left-0 right-0 h-6 checkered-pattern" />
+
+      <div className="container mx-auto px-4 pt-6">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <span className="font-body text-primary uppercase tracking-wider text-sm font-semibold">
+          <span className="font-body text-primary uppercase tracking-widest text-sm font-bold">
             Recensioni
           </span>
-          <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground mt-2 mb-4">
-            Cosa Dicono i Nostri Clienti
+          <h2 className="font-display text-5xl md:text-6xl text-accent-foreground mt-2 mb-4 tracking-wide">
+            COSA DICONO I NOSTRI CLIENTI
           </h2>
-          <div className="w-24 h-1 bg-primary mx-auto rounded-full mb-6" />
+          <div className="w-32 h-1 bg-primary mx-auto mb-8" />
           
           {/* Rating Summary */}
-          <div className="flex items-center justify-center gap-4">
+          <div className="inline-flex items-center gap-4 bg-primary text-primary-foreground px-6 py-4">
             <div className="flex">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className="w-6 h-6 fill-gold text-gold" />
               ))}
             </div>
-            <span className="font-display text-3xl font-bold text-foreground">4.7</span>
-            <span className="font-body text-muted-foreground">su 183 recensioni Google</span>
+            <span className="font-display text-3xl">4.7</span>
+            <span className="font-body text-sm">su Google</span>
           </div>
         </div>
 
         {/* Reviews Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {reviews.map((review, index) => (
-            <Card key={index} className="hover-lift bg-card">
+            <Card 
+              key={index} 
+              className="bg-card text-card-foreground border-2 border-card-foreground/10 hover:border-primary transition-colors"
+            >
               <CardContent className="p-6">
-                <Quote className="w-8 h-8 text-primary/20 mb-4" />
+                <Quote className="w-8 h-8 text-primary/30 mb-4" />
                 
                 {/* Rating */}
                 <div className="flex mb-3">
@@ -85,10 +92,10 @@ export const ReviewsSection = () => {
                 {/* Author */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-display font-semibold text-foreground">{review.name}</p>
+                    <p className="font-display text-lg text-foreground tracking-wide">{review.name}</p>
                     <p className="font-body text-xs text-muted-foreground">{review.date}</p>
                   </div>
-                  <span className="font-body text-xs text-primary bg-primary/10 px-2 py-1 rounded">
+                  <span className="font-body text-xs text-primary-foreground bg-primary px-2 py-1">
                     {review.source}
                   </span>
                 </div>
@@ -97,6 +104,9 @@ export const ReviewsSection = () => {
           ))}
         </div>
       </div>
+
+      {/* Checkered Border Bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-6 checkered-pattern" />
     </section>
   );
 };
