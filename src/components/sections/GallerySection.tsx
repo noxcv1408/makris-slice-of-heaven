@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import galleryPizza1 from '@/assets/gallery-pizza-1.jpg';
 
 const galleryImages = [
-  { src: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&h=400&fit=crop', alt: 'Pizza Margherita' },
+  { src: galleryPizza1, alt: 'Pizza Margherita' },
   { src: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop', alt: 'Pizza con prosciutto' },
   { src: 'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=600&h=400&fit=crop', alt: 'Preparazione pizza' },
   { src: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&h=400&fit=crop', alt: 'Dessert' },
