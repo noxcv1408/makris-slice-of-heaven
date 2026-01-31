@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import galleryPizza1 from '@/assets/gallery-pizza-1.jpg';
+import galleryNew1 from '@/assets/gallery-new-1.jpg';
 import galleryPrep from '@/assets/gallery-prep.jpg';
-import galleryPizza2 from '@/assets/gallery-pizza-2.jpg';
-import galleryPizza3 from '@/assets/gallery-pizza-3.jpg';
-import galleryPistacchio from '@/assets/gallery-pistacchio.jpg';
-import galleryPizza5 from '@/assets/gallery-pizza-5.jpg';
+import galleryNew3 from '@/assets/gallery-new-3.jpg';
+import galleryNew4 from '@/assets/gallery-new-4.jpg';
+import galleryNew5 from '@/assets/gallery-new-5.jpg';
+import galleryNew6 from '@/assets/gallery-new-6.jpg';
 
 const galleryImages = [
-  { src: galleryPizza1, alt: 'Pizza Margherita' },
+  { src: galleryNew1, alt: 'Pizza al Pesto' },
   { src: galleryPrep, alt: 'Preparazione Pizza' },
-  { src: galleryPizza2, alt: 'Pizza Gourmet' },
-  { src: galleryPizza3, alt: 'Pizza al Pistacchio' },
-  { src: galleryPistacchio, alt: 'Pizza con Mortadella' },
-  { src: galleryPizza5, alt: 'Pizza Speciale' },
+  { src: galleryNew3, alt: 'Pizza con Salsiccia' },
+  { src: galleryNew4, alt: 'Pizza Gourmet' },
+  { src: galleryNew5, alt: 'Pizza al Pistacchio' },
+  { src: galleryNew6, alt: 'Pizza Speciale' },
 ];
 
 export const GallerySection = () => {
