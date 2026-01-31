@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import galleryPizza1 from '@/assets/gallery-pizza-1.jpg';
+import galleryInterior from '@/assets/gallery-interior.webp';
+import galleryPizza2 from '@/assets/gallery-pizza-2.jpg';
+import galleryPizza3 from '@/assets/gallery-pizza-3.jpg';
+import galleryPizza4 from '@/assets/gallery-pizza-4.webp';
 
 const galleryImages = [
   { src: galleryPizza1, alt: 'Pizza Margherita' },
-  { src: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop', alt: 'Pizza con prosciutto' },
-  { src: 'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=600&h=400&fit=crop', alt: 'Preparazione pizza' },
-  { src: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&h=400&fit=crop', alt: 'Dessert' },
-  { src: 'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=600&h=400&fit=crop', alt: 'Pizza Bufalina' },
-  { src: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&h=400&fit=crop', alt: 'Pizza classica' },
+  { src: galleryInterior, alt: 'Interno Makris' },
+  { src: galleryPizza2, alt: 'Pizza Gourmet' },
+  { src: galleryPizza3, alt: 'Pizza al Pistacchio' },
+  { src: galleryPizza4, alt: 'Pizza con Alici' },
+  { src: galleryPizza1, alt: 'Pizza Napoletana' },
 ];
 
 export const GallerySection = () => {
