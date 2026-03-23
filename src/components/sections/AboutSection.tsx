@@ -1,58 +1,72 @@
-import { MapPin, Clock, Truck, Wifi } from "lucide-react";
+import { Clock, MapPin, Truck, Users } from "lucide-react";
+import { siteData } from "@/data/siteData";
 
 const infoCards = [
   {
     icon: MapPin,
     title: "POSIZIONE",
-    lines: ["Via Lago Patria, 140", "Giugliano in Campania (NA)"],
+    lines: [
+      siteData.address.street,
+      `${siteData.address.locality} - ${siteData.address.municipality} (${siteData.address.region})`,
+    ],
   },
   {
     icon: Clock,
     title: "ORARI",
-    lines: ["Mar-Sab: 17:30-23:00", "Dom: 18:00-23:00", "Lunedì: Chiuso"],
+    lines: ["Mar-Sab: 17:30-23:00", "Dom: 18:00-23:00", "Lunedi: Chiuso"],
   },
   {
     icon: Truck,
     title: "CONSEGNA",
-    lines: ["Lago Patria: €1.00", "Varcaturo: €1.50", "Licola: €2.00"],
+    lines: siteData.deliveryFees,
   },
   {
-    icon: Wifi,
-    title: "SERVIZI",
-    lines: ["Wi-Fi Gratuito", "Menu Bambini", "Asporto"],
+    icon: Users,
+    title: "PER CHI E PENSATO",
+    lines: ["Cena in sede", "Asporto rapido", "Clienti locali e internazionali"],
   },
 ];
 
 export default function AboutSection() {
   return (
-    <section id="chi-siamo" className="py-20 bg-secondary">
+    <section id="chi-siamo" className="bg-secondary py-20">
       <div className="container mx-auto px-4">
-        <p className="text-center text-primary font-display tracking-[0.3em] text-sm">Chi Siamo</p>
-        <h2 className="text-center font-display text-3xl md:text-4xl text-foreground tracking-wider mt-2">
-          LA NOSTRA STORIA
+        <p className="text-center text-sm font-display tracking-[0.3em] text-primary">Chi siamo</p>
+        <h2 className="mt-2 text-center font-display text-3xl tracking-wider text-foreground md:text-4xl">
+          PIZZA NAPOLETANA, STILE MAKRIS
         </h2>
-        <p className="text-center text-primary text-sm tracking-widest mt-1">Authentic Italian Pizza</p>
+        <p className="mx-auto mt-4 max-w-3xl text-center text-sm leading-relaxed text-foreground/80 md:text-base">
+          A Lago Patria trovi una pizza fatta con attenzione, ingredienti scelti e un'atmosfera che
+          rende il locale subito riconoscibile.
+        </p>
 
-        <div className="max-w-2xl mx-auto mt-8 text-foreground/90 text-center leading-relaxed space-y-4">
+        <div className="mx-auto mt-10 max-w-3xl space-y-4 text-center leading-relaxed text-foreground/90">
           <p>
-            Dal <strong>2020</strong>, <strong>Makris Pizza & Love</strong> porta la vera pizza napoletana a Lago Patria.
-            Il nostro stile retrò americano si fonde con l'autentica tradizione culinaria italiana per creare
-            un'esperienza unica.
+            Makris Pizza & Love porta a {siteData.address.locality} una pizza napoletana fatta con
+            attenzione, ingredienti buoni e uno stile che mescola anima partenopea e atmosfera
+            italo-americana.
           </p>
           <p>
-            Ogni pizza è preparata con ingredienti freschi e di qualità, cotta nel nostro forno a legna secondo la
-            tradizione napoletana. Vieni a trovarci per gustare la vera <strong>pizza napoletana</strong> in un ambiente
-            accogliente e familiare.
+            Qui puoi fermarti a cena, ordinare da asporto oppure scegliere la consegna. Il risultato
+            resta lo stesso: un'esperienza semplice, curata e pensata per farti tornare.
+          </p>
+          <p>
+            Il locale accoglie anche ospiti internazionali che passano dalla zona di Lago Patria, con
+            una comunicazione chiara e un servizio facile da capire fin dal primo contatto.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
-          {infoCards.map((c) => (
-            <div key={c.title} className="bg-card p-6 rounded-lg text-center">
-              <c.icon className="mx-auto text-primary mb-3" size={28} />
-              <h3 className="font-display text-foreground tracking-wider text-sm mb-3">{c.title}</h3>
-              {c.lines.map((l) => (
-                <p key={l} className="text-foreground/80 text-sm">{l}</p>
+        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {infoCards.map((card) => (
+            <div key={card.title} className="rounded-xl bg-card p-6 text-center shadow-lg shadow-black/10">
+              <card.icon className="mx-auto mb-3 text-primary" size={28} />
+              <h3 className="mb-3 text-sm font-display tracking-wider text-foreground">
+                {card.title}
+              </h3>
+              {card.lines.map((line) => (
+                <p key={line} className="text-sm text-foreground/80">
+                  {line}
+                </p>
               ))}
             </div>
           ))}

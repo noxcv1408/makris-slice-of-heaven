@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://makris-pizza-e-love.it/sitemap.xml

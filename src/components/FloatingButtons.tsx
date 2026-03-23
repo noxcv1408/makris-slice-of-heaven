@@ -1,21 +1,26 @@
 import { MessageCircle } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { siteData } from "@/data/siteData";
 
 export default function FloatingButtons() {
+  const location = useLocation();
+  const isOrderPage = location.pathname === "/ordina";
+
   return (
     <>
-      <a
-        href="https://www.justeat.it/restaurants-makris-pizza-and-love-lago-patria/menu"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-20 right-4 z-40 bg-primary text-primary-foreground px-4 py-2 rounded-full font-display text-xs tracking-wider shadow-lg hover:brightness-110 transition flex items-center gap-2"
+      <Link
+        to={isOrderPage ? "/" : "/ordina"}
+        aria-label={isOrderPage ? "Torna alla home" : "Apri configuratore"}
+        className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded-full bg-primary px-4 py-2 font-display text-xs tracking-wider text-primary-foreground shadow-lg transition hover:brightness-110"
       >
-        🍕 JUST EAT
-      </a>
+        {isOrderPage ? "HOME" : "ORDINA"}
+      </Link>
       <a
-        href="https://wa.me/393533554533?text=Ciao!%20Vorrei%20ordinare%20da%20Makris%20Pizza%26Love"
+        href={siteData.whatsapp}
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-4 z-40 bg-green-600 text-white px-4 py-2 rounded-full font-display text-xs tracking-wider shadow-lg hover:bg-green-700 transition flex items-center gap-2"
+        aria-label="Scrivi su WhatsApp"
+        className="fixed bottom-6 right-4 z-40 flex items-center gap-2 rounded-full bg-green-600 px-4 py-2 font-display text-xs tracking-wider text-white shadow-lg transition hover:bg-green-700"
       >
         <MessageCircle size={16} /> WHATSAPP
       </a>

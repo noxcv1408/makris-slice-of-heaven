@@ -1,79 +1,105 @@
-import { MapPin, Phone, Clock } from "lucide-react";
-
-const hours = [
-  { day: "Lunedì", time: "Chiuso", closed: true },
-  { day: "Martedì", time: "17:30 – 23:00" },
-  { day: "Mercoledì", time: "17:30 – 23:00" },
-  { day: "Giovedì", time: "17:30 – 23:00" },
-  { day: "Venerdì", time: "17:30 – 23:00" },
-  { day: "Sabato", time: "17:30 – 23:00" },
-  { day: "Domenica", time: "18:00 – 23:00" },
-];
+import { Clock, MapPin, Phone } from "lucide-react";
+import { Link } from "react-router-dom";
+import { siteData } from "@/data/siteData";
 
 export default function ContactSection() {
   return (
-    <section id="contatti" className="py-20 bg-secondary">
+    <section id="contatti" className="bg-background py-20">
       <div className="container mx-auto px-4">
-        <p className="text-center text-primary font-display tracking-[0.3em] text-sm">Contatti</p>
-        <h2 className="text-center font-display text-3xl md:text-4xl text-foreground tracking-wider mt-2">
-          VIENI A TROVARCI
+        <p className="text-center text-sm font-display tracking-[0.3em] text-primary">Contatti</p>
+        <h2 className="mt-2 text-center font-display text-3xl tracking-wider text-foreground md:text-4xl">
+          VIENI A TROVARCI O ORDINA SUBITO
         </h2>
+        <p className="mx-auto mt-4 max-w-3xl text-center text-sm leading-relaxed text-foreground/75">
+          Ci trovi a Lago Patria. Se vuoi passare in sede, ordinare da asporto o ricevere a domicilio,
+          qui hai tutto quello che serve per farlo subito.
+        </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12 max-w-4xl mx-auto">
-          <div className="text-center">
-            <MapPin className="mx-auto text-primary mb-3" size={28} />
-            <h3 className="font-display text-foreground tracking-wider text-sm mb-2">INDIRIZZO</h3>
-            <p className="text-foreground/80 text-sm">Via Lago Patria, 140</p>
-            <p className="text-foreground/80 text-sm">80014 Lago Patria</p>
-            <p className="text-foreground/80 text-sm">Giugliano in Campania (NA)</p>
+        <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-3">
+          <div className="rounded-2xl border border-border bg-card p-6 text-center">
+            <MapPin className="mx-auto mb-3 text-primary" size={28} />
+            <h3 className="mb-2 text-sm font-display tracking-wider text-foreground">INDIRIZZO</h3>
+            <p className="text-sm text-foreground/80">{siteData.address.street}</p>
+            <p className="text-sm text-foreground/80">
+              {siteData.address.postalCode} {siteData.address.locality}
+            </p>
+            <p className="text-sm text-foreground/80">
+              {siteData.address.municipality} ({siteData.address.region})
+            </p>
             <a
-              href="https://maps.google.com/?q=Via+Lago+Patria+140+80014+Lago+Patria+NA+Italy"
+              href={`https://maps.google.com/?q=${encodeURIComponent(siteData.address.mapQuery)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block mt-3 text-primary text-sm hover:underline"
+              className="mt-3 inline-block text-sm text-primary hover:underline"
             >
               Apri in Google Maps
             </a>
           </div>
 
-          <div className="text-center">
-            <Phone className="mx-auto text-primary mb-3" size={28} />
-            <h3 className="font-display text-foreground tracking-wider text-sm mb-2">TELEFONO</h3>
-            <a href="tel:+390815559226" className="block text-foreground/80 text-sm hover:text-primary transition">
-              081 5559226
-            </a>
-            <a href="tel:+393533554533" className="block text-foreground/80 text-sm hover:text-primary transition">
-              353 3554533
+          <div className="rounded-2xl border border-border bg-card p-6 text-center">
+            <Phone className="mx-auto mb-3 text-primary" size={28} />
+            <h3 className="mb-2 text-sm font-display tracking-wider text-foreground">CONTATTI</h3>
+            {siteData.phones.map((phone) => (
+              <a
+                key={phone.href}
+                href={phone.href}
+                className="block text-sm text-foreground/80 transition hover:text-primary"
+              >
+                {phone.label}
+              </a>
+            ))}
+            <a
+              href={siteData.whatsapp}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-block text-sm text-primary hover:underline"
+            >
+              Scrivi su WhatsApp
             </a>
           </div>
 
-          <div className="text-center">
-            <Clock className="mx-auto text-primary mb-3" size={28} />
-            <h3 className="font-display text-foreground tracking-wider text-sm mb-2">ORARI DI APERTURA</h3>
-            {hours.map((h) => (
-              <div key={h.day} className="flex justify-between text-sm max-w-[200px] mx-auto">
-                <span className="text-foreground/80">{h.day}</span>
-                <span className={h.closed ? "text-primary" : "text-foreground/80"}>{h.time}</span>
+          <div className="rounded-2xl border border-border bg-card p-6 text-center">
+            <Clock className="mx-auto mb-3 text-primary" size={28} />
+            <h3 className="mb-2 text-sm font-display tracking-wider text-foreground">
+              ORARI DI APERTURA
+            </h3>
+            {siteData.openingHours.map((entry) => (
+              <div key={entry.day} className="mx-auto flex max-w-[220px] justify-between text-sm">
+                <span className="text-foreground/80">{entry.day}</span>
+                <span className={entry.closed ? "text-primary" : "text-foreground/80"}>
+                  {entry.time}
+                </span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="flex justify-center gap-4 mt-10">
-          <a
-            href="tel:+390815559226"
-            className="bg-primary text-primary-foreground font-display tracking-wider px-8 py-3 hover:brightness-110 transition"
-          >
-            CHIAMA ORA
-          </a>
-          <a
-            href="https://wa.me/393533554533?text=Ciao!%20Vorrei%20ordinare%20da%20Makris%20Pizza%26Love"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border-2 border-foreground text-foreground font-display tracking-wider px-8 py-3 hover:bg-foreground hover:text-background transition"
-          >
-            WHATSAPP
-          </a>
+        <div className="mx-auto mt-8 max-w-4xl rounded-2xl border border-border bg-secondary/70 p-6">
+          <div className="flex flex-wrap gap-2">
+            {siteData.deliveryFees.map((fee) => (
+              <span
+                key={fee}
+                className="rounded-full bg-card px-3 py-1 text-xs tracking-wider text-foreground/80"
+              >
+                {fee}
+              </span>
+            ))}
+          </div>
+
+          <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:justify-center">
+            <a
+              href={siteData.phones[0].href}
+              className="bg-primary px-8 py-3 text-center font-display tracking-wider text-primary-foreground transition hover:brightness-110"
+            >
+              CHIAMA ORA
+            </a>
+            <Link
+              to="/ordina"
+              className="border-2 border-foreground px-8 py-3 text-center font-display tracking-wider text-foreground transition hover:bg-foreground hover:text-background"
+            >
+              ORDINA ONLINE
+            </Link>
+          </div>
         </div>
       </div>
     </section>
