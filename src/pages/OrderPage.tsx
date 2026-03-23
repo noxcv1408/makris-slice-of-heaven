@@ -18,25 +18,34 @@ import {
   calculateDeliveryFee,
   calculatePizzaUnitPrice,
   CartItem,
+  cartItemSummary,
+  cartItemTitle,
   cheeseOptions,
   CustomerDetails,
   defaultCustomerDetails,
   deliveryZones,
   doughOptions,
   emptyPizzaDraft,
-  findOptionLabel,
+  extraCategoryLabels,
+  extraOptions,
+  ExtraOption,
   formatCurrency,
+  isSplitSize,
+  PizzaCartItem,
   pizzaSizes,
   PizzaDraft,
   pizzaSummary,
   presetPizzas,
   sauceOptions,
+  splitFlavorOptions,
+  toCheckoutLineItem,
   toppingOptions,
 } from "@/data/orderBuilder";
 
 const CART_STORAGE_KEY = "makris-builder-cart";
 const CUSTOMER_STORAGE_KEY = "makris-builder-customer";
 const MAX_TOPPINGS = 6;
+type FeedbackTone = "success" | "error" | "info";
 
 function loadStoredCart() {
   if (typeof window === "undefined") {
@@ -45,7 +54,27 @@ function loadStoredCart() {
 
   try {
     const stored = window.localStorage.getItem(CART_STORAGE_KEY);
-    return stored ? (JSON.parse(stored) as CartItem[]) : [];
+    if (!stored) {
+      return [] as CartItem[];
+    }
+
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) {
+      return [] as CartItem[];
+    }
+
+    return parsed.filter((item) => {
+      if (!item || typeof item !== "object") {
+        return false;
+      }
+
+      const current = item as Record<string, unknown>;
+      if (current.itemType === "extra") {
+        return typeof current.optionId === "string" && typeof current.totalPrice === "number";
+      }
+
+      return current.itemType === "pizza" && typeof current.totalPrice === "number";
+    }) as CartItem[];
   } catch {
     return [] as CartItem[];
   }
@@ -70,14 +99,24 @@ function optionCardClasses(active: boolean) {
     : "border-border bg-card text-foreground hover:border-primary/50";
 }
 
-function createCartItem(draft: PizzaDraft): CartItem {
+function createCartItem(draft: PizzaDraft): PizzaCartItem {
   const unitPrice = calculatePizzaUnitPrice(draft);
   return {
-    ...draft,
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    itemType: "pizza",
+    draft,
+    quantity: draft.quantity,
     unitPrice,
     totalPrice: Number((unitPrice * draft.quantity).toFixed(2)),
   };
+}
+
+function createDraftName(draft: PizzaDraft) {
+  if (draft.splitMode && isSplitSize(draft.sizeId)) {
+    return "Meta e Meta";
+  }
+
+  return "Pizza personalizzata";
 }
 
 export default function OrderPage() {
@@ -85,6 +124,8 @@ export default function OrderPage() {
   const [cart, setCart] = useState<CartItem[]>(loadStoredCart);
   const [customer, setCustomer] = useState<CustomerDetails>(loadStoredCustomer);
   const [feedback, setFeedback] = useState("");
+  const [feedbackTone, setFeedbackTone] = useState<FeedbackTone>("info");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
@@ -94,6 +135,13 @@ export default function OrderPage() {
     window.localStorage.setItem(CUSTOMER_STORAGE_KEY, JSON.stringify(customer));
   }, [customer]);
 
+  useEffect(() => {
+    if (!isSplitSize(draft.sizeId) && draft.splitMode) {
+      setDraft((current) => ({ ...current, splitMode: false }));
+    }
+  }, [draft.sizeId, draft.splitMode]);
+
+  const canSplit = isSplitSize(draft.sizeId);
   const draftUnitPrice = useMemo(() => calculatePizzaUnitPrice(draft), [draft]);
   const subtotal = useMemo(() => calculateCartSubtotal(cart), [cart]);
   const deliveryFee = useMemo(
@@ -101,12 +149,6 @@ export default function OrderPage() {
     [customer.serviceMode, customer.zoneId],
   );
   const total = subtotal + deliveryFee;
-
-  const checkoutMessage = useMemo(
-    () => buildWhatsAppOrderMessage(cart, customer),
-    [cart, customer],
-  );
-  const checkoutHref = `https://wa.me/${siteData.whatsappNumber}?text=${encodeURIComponent(checkoutMessage)}`;
 
   const canCheckout =
     cart.length > 0 &&
@@ -127,6 +169,7 @@ export default function OrderPage() {
 
       if (current.toppingsIds.length >= MAX_TOPPINGS) {
         setFeedback(`Puoi selezionare fino a ${MAX_TOPPINGS} ingredienti extra.`);
+        setFeedbackTone("error");
         return current;
       }
 
@@ -141,15 +184,65 @@ export default function OrderPage() {
   const addDraftToCart = (nextDraft: PizzaDraft) => {
     setCart((current) => [...current, createCartItem(nextDraft)]);
     setFeedback(`${nextDraft.name} aggiunta al carrello.`);
+    setFeedbackTone("success");
   };
 
   const addPresetToCart = (preset: PizzaDraft) => {
-    addDraftToCart(preset);
+    addDraftToCart({
+      ...preset,
+      splitMode: false,
+      quantity: 1,
+    });
   };
 
   const addCustomPizza = () => {
-    addDraftToCart(draft);
+    const nextDraft = {
+      ...draft,
+      name: createDraftName(draft),
+    };
+
+    addDraftToCart(nextDraft);
     setDraft(emptyPizzaDraft());
+  };
+
+  const addExtraToCart = (option: ExtraOption) => {
+    setCart((current) => {
+      const existing = current.find(
+        (item) => item.itemType === "extra" && item.optionId === option.id,
+      );
+
+      if (existing && existing.itemType === "extra") {
+        return current.map((item) => {
+          if (item.id !== existing.id || item.itemType !== "extra") {
+            return item;
+          }
+
+          const quantity = item.quantity + 1;
+          return {
+            ...item,
+            quantity,
+            totalPrice: Number((quantity * item.unitPrice).toFixed(2)),
+          };
+        });
+      }
+
+      return [
+        ...current,
+        {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+          itemType: "extra",
+          optionId: option.id,
+          name: option.label,
+          category: option.category,
+          quantity: 1,
+          unitPrice: option.price,
+          totalPrice: option.price,
+        },
+      ];
+    });
+
+    setFeedback(`${option.label} aggiunto al carrello.`);
+    setFeedbackTone("success");
   };
 
   const updateCartItemQuantity = (itemId: string, delta: number) => {
@@ -174,11 +267,66 @@ export default function OrderPage() {
     setCart((current) => current.filter((item) => item.id !== itemId));
   };
 
+  const handleCheckout = async () => {
+    if (!canCheckout || isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setFeedback("Prepariamo il riepilogo ordine...");
+    setFeedbackTone("info");
+
+    let popup: Window | null = null;
+
+    try {
+      popup = window.open("", "_blank", "noopener,noreferrer");
+
+      const payload = {
+        customer,
+        items: cart.map(toCheckoutLineItem),
+      };
+
+      const response = await fetch("/api/order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data?.whatsappUrl) {
+        throw new Error(data?.error || "Impossibile preparare l'ordine.");
+      }
+
+      setFeedback(`Ordine ${data.orderId} pronto. Ti apriamo WhatsApp.`);
+      setFeedbackTone("success");
+
+      if (popup) {
+        popup.location.href = data.whatsappUrl as string;
+      } else {
+        window.location.href = data.whatsappUrl as string;
+      }
+    } catch {
+      if (popup) {
+        popup.close();
+      }
+
+      const fallbackMessage = buildWhatsAppOrderMessage(cart, customer);
+      const fallbackHref = `https://wa.me/${siteData.whatsappNumber}?text=${encodeURIComponent(fallbackMessage)}`;
+      window.open(fallbackHref, "_blank", "noopener,noreferrer");
+      setFeedback("Connessione lenta: abbiamo usato il canale WhatsApp diretto.");
+      setFeedbackTone("error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <>
       <Seo
         title="Ordina la tua pizza | Makris Pizza & Love"
-        description="Configura la tua pizza Makris, aggiungila al carrello e invia l'ordine direttamente da Lago Patria tramite il configuratore del sito."
+        description="Configura la tua pizza Makris, crea la versione meta e meta, aggiungi extra e invia l'ordine direttamente da Lago Patria."
         path="/ordina"
       />
 
@@ -199,8 +347,8 @@ export default function OrderPage() {
                 CREA LA TUA PIZZA E ORDINA DAL SITO
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-relaxed text-foreground/80 md:text-base">
-                Scegli formato, impasto, ingredienti e quantita, poi invia l'ordine in pochi
-                passaggi con un riepilogo chiaro su WhatsApp.
+                Puoi fare anche la versione meta e meta su 1/2 metro e metro, aggiungere fritti,
+                bibite e dolci, poi inviare tutto in un unico ordine.
               </p>
             </div>
           </div>
@@ -266,7 +414,13 @@ export default function OrderPage() {
                         <button
                           key={size.id}
                           type="button"
-                          onClick={() => setDraft((current) => ({ ...current, sizeId: size.id }))}
+                          onClick={() =>
+                            setDraft((current) => ({
+                              ...current,
+                              sizeId: size.id,
+                              splitMode: isSplitSize(size.id) ? current.splitMode : false,
+                            }))
+                          }
                           className={`rounded-2xl border p-4 text-left transition ${optionCardClasses(
                             draft.sizeId === size.id,
                           )}`}
@@ -281,56 +435,50 @@ export default function OrderPage() {
                     </div>
                   </div>
 
-                  <div className="grid gap-8 md:grid-cols-2">
-                    <div>
-                      <h3 className="font-display text-sm tracking-[0.25em] text-primary">IMPASTO</h3>
-                      <div className="mt-3 space-y-3">
-                        {doughOptions.map((option) => (
+                  {canSplit ? (
+                    <div className="rounded-2xl border border-border bg-background/40 p-4">
+                      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                        <p className="text-sm font-display tracking-[0.25em] text-primary">
+                          MODALITA 2 GUSTI
+                        </p>
+                        <div className="inline-flex rounded-full border border-border bg-background/60 p-1">
                           <button
-                            key={option.id}
                             type="button"
-                            onClick={() => setDraft((current) => ({ ...current, doughId: option.id }))}
-                            className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${optionCardClasses(
-                              draft.doughId === option.id,
-                            )}`}
+                            onClick={() => setDraft((current) => ({ ...current, splitMode: false }))}
+                            className={`rounded-full px-4 py-2 text-xs transition ${
+                              !draft.splitMode
+                                ? "bg-primary text-primary-foreground"
+                                : "text-foreground/70 hover:text-foreground"
+                            }`}
                           >
-                            <span>{option.label}</span>
-                            <span>{option.price > 0 ? `+ ${formatCurrency(option.price)}` : "Incluso"}</span>
+                            Singolo gusto
                           </button>
-                        ))}
+                          <button
+                            type="button"
+                            onClick={() => setDraft((current) => ({ ...current, splitMode: true }))}
+                            className={`rounded-full px-4 py-2 text-xs transition ${
+                              draft.splitMode
+                                ? "bg-primary text-primary-foreground"
+                                : "text-foreground/70 hover:text-foreground"
+                            }`}
+                          >
+                            Meta e Meta
+                          </button>
+                        </div>
                       </div>
                     </div>
-
-                    <div>
-                      <h3 className="font-display text-sm tracking-[0.25em] text-primary">BASE</h3>
-                      <div className="mt-3 space-y-3">
-                        {sauceOptions.map((option) => (
-                          <button
-                            key={option.id}
-                            type="button"
-                            onClick={() => setDraft((current) => ({ ...current, sauceId: option.id }))}
-                            className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${optionCardClasses(
-                              draft.sauceId === option.id,
-                            )}`}
-                          >
-                            <span>{option.label}</span>
-                            <span>{option.price > 0 ? `+ ${formatCurrency(option.price)}` : "Incluso"}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                  ) : null}
 
                   <div>
-                    <h3 className="font-display text-sm tracking-[0.25em] text-primary">FORMAGGIO</h3>
-                    <div className="mt-3 grid gap-3 md:grid-cols-2">
-                      {cheeseOptions.map((option) => (
+                    <h3 className="font-display text-sm tracking-[0.25em] text-primary">IMPASTO</h3>
+                    <div className="mt-3 space-y-3">
+                      {doughOptions.map((option) => (
                         <button
                           key={option.id}
                           type="button"
-                          onClick={() => setDraft((current) => ({ ...current, cheeseId: option.id }))}
-                          className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${optionCardClasses(
-                            draft.cheeseId === option.id,
+                          onClick={() => setDraft((current) => ({ ...current, doughId: option.id }))}
+                          className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${optionCardClasses(
+                            draft.doughId === option.id,
                           )}`}
                         >
                           <span>{option.label}</span>
@@ -340,37 +488,125 @@ export default function OrderPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <div className="flex items-center justify-between gap-4">
-                      <h3 className="font-display text-sm tracking-[0.25em] text-primary">
-                        INGREDIENTI EXTRA
-                      </h3>
-                      <span className="text-xs text-foreground/60">
-                        {draft.toppingsIds.length}/{MAX_TOPPINGS}
-                      </span>
-                    </div>
-                    <div className="mt-3 grid gap-3 md:grid-cols-2">
-                      {toppingOptions.map((option) => {
-                        const selected = draft.toppingsIds.includes(option.id);
+                  {draft.splitMode && canSplit ? (
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <div>
+                        <h3 className="font-display text-sm tracking-[0.25em] text-primary">
+                          PRIMA META
+                        </h3>
+                        <div className="mt-3 space-y-3">
+                          {splitFlavorOptions.map((flavor) => (
+                            <button
+                              key={flavor.id}
+                              type="button"
+                              onClick={() => setDraft((current) => ({ ...current, leftFlavorId: flavor.id }))}
+                              className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${optionCardClasses(
+                                draft.leftFlavorId === flavor.id,
+                              )}`}
+                            >
+                              <span>{flavor.label}</span>
+                              <span className="text-xs opacity-80">Meta</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
 
-                        return (
-                          <button
-                            key={option.id}
-                            type="button"
-                            onClick={() => toggleTopping(option.id)}
-                            className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
-                              selected
-                                ? "border-primary bg-primary text-primary-foreground"
-                                : "border-border bg-background/40 text-foreground hover:border-primary/50"
-                            }`}
-                          >
-                            <span>{option.label}</span>
-                            <span>{option.price > 0 ? `+ ${formatCurrency(option.price)}` : "Incluso"}</span>
-                          </button>
-                        );
-                      })}
+                      <div>
+                        <h3 className="font-display text-sm tracking-[0.25em] text-primary">
+                          SECONDA META
+                        </h3>
+                        <div className="mt-3 space-y-3">
+                          {splitFlavorOptions.map((flavor) => (
+                            <button
+                              key={flavor.id}
+                              type="button"
+                              onClick={() => setDraft((current) => ({ ...current, rightFlavorId: flavor.id }))}
+                              className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${optionCardClasses(
+                                draft.rightFlavorId === flavor.id,
+                              )}`}
+                            >
+                              <span>{flavor.label}</span>
+                              <span className="text-xs opacity-80">Meta</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <>
+                      <div className="grid gap-8 md:grid-cols-2">
+                        <div>
+                          <h3 className="font-display text-sm tracking-[0.25em] text-primary">BASE</h3>
+                          <div className="mt-3 space-y-3">
+                            {sauceOptions.map((option) => (
+                              <button
+                                key={option.id}
+                                type="button"
+                                onClick={() => setDraft((current) => ({ ...current, sauceId: option.id }))}
+                                className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${optionCardClasses(
+                                  draft.sauceId === option.id,
+                                )}`}
+                              >
+                                <span>{option.label}</span>
+                                <span>{option.price > 0 ? `+ ${formatCurrency(option.price)}` : "Incluso"}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h3 className="font-display text-sm tracking-[0.25em] text-primary">FORMAGGIO</h3>
+                          <div className="mt-3 space-y-3">
+                            {cheeseOptions.map((option) => (
+                              <button
+                                key={option.id}
+                                type="button"
+                                onClick={() => setDraft((current) => ({ ...current, cheeseId: option.id }))}
+                                className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${optionCardClasses(
+                                  draft.cheeseId === option.id,
+                                )}`}
+                              >
+                                <span>{option.label}</span>
+                                <span>{option.price > 0 ? `+ ${formatCurrency(option.price)}` : "Incluso"}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between gap-4">
+                          <h3 className="font-display text-sm tracking-[0.25em] text-primary">
+                            INGREDIENTI EXTRA
+                          </h3>
+                          <span className="text-xs text-foreground/60">
+                            {draft.toppingsIds.length}/{MAX_TOPPINGS}
+                          </span>
+                        </div>
+                        <div className="mt-3 grid gap-3 md:grid-cols-2">
+                          {toppingOptions.map((option) => {
+                            const selected = draft.toppingsIds.includes(option.id);
+
+                            return (
+                              <button
+                                key={option.id}
+                                type="button"
+                                onClick={() => toggleTopping(option.id)}
+                                className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
+                                  selected
+                                    ? "border-primary bg-primary text-primary-foreground"
+                                    : "border-border bg-background/40 text-foreground hover:border-primary/50"
+                                }`}
+                              >
+                                <span>{option.label}</span>
+                                <span>{option.price > 0 ? `+ ${formatCurrency(option.price)}` : "Incluso"}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   <div className="grid gap-6 md:grid-cols-[1fr,auto]">
                     <div>
@@ -439,6 +675,44 @@ export default function OrderPage() {
                   </div>
                 </div>
               </section>
+
+              <section className="rounded-3xl border border-border bg-card p-6">
+                <h2 className="font-display text-xl tracking-wider text-foreground">
+                  Aggiungi fritti, bibite e dolci
+                </h2>
+                <p className="mt-2 text-sm text-foreground/70">
+                  Completa l'ordine senza uscire dal configuratore.
+                </p>
+
+                <div className="mt-6 space-y-6">
+                  {(Object.keys(extraCategoryLabels) as Array<keyof typeof extraCategoryLabels>).map(
+                    (category) => (
+                      <div key={category}>
+                        <h3 className="font-display text-sm tracking-[0.25em] text-primary">
+                          {extraCategoryLabels[category]}
+                        </h3>
+                        <div className="mt-3 grid gap-3 md:grid-cols-2">
+                          {extraOptions
+                            .filter((option) => option.category === category)
+                            .map((option) => (
+                              <button
+                                key={option.id}
+                                type="button"
+                                onClick={() => addExtraToCart(option)}
+                                className="flex items-center justify-between rounded-2xl border border-border bg-background/40 px-4 py-3 text-left transition hover:border-primary/50"
+                              >
+                                <span className="text-sm">{option.label}</span>
+                                <span className="text-sm font-semibold text-primary">
+                                  {formatCurrency(option.price)}
+                                </span>
+                              </button>
+                            ))}
+                        </div>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </section>
             </div>
 
             <aside className="space-y-6 xl:sticky xl:top-28 xl:self-start">
@@ -462,19 +736,21 @@ export default function OrderPage() {
                 <div className="mt-6 space-y-4">
                   {cart.length === 0 ? (
                     <p className="rounded-2xl border border-dashed border-border px-4 py-5 text-sm text-foreground/65">
-                      Nessuna pizza nel carrello. Parti da un preset o crea la tua combinazione.
+                      Nessun prodotto nel carrello. Parti da una pizza o aggiungi extra.
                     </p>
                   ) : (
                     cart.map((item) => (
                       <article key={item.id} className="rounded-2xl border border-border bg-background/40 p-4">
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <p className="font-display text-sm tracking-wider text-foreground">{item.name}</p>
-                            <p className="mt-2 text-xs leading-relaxed text-foreground/65">
-                              {pizzaSummary(item)}
+                            <p className="font-display text-sm tracking-wider text-foreground">
+                              {cartItemTitle(item)}
                             </p>
-                            {item.notes ? (
-                              <p className="mt-2 text-xs italic text-foreground/60">Note: {item.notes}</p>
+                            <p className="mt-2 text-xs leading-relaxed text-foreground/65">
+                              {cartItemSummary(item)}
+                            </p>
+                            {item.itemType === "pizza" && item.draft.notes ? (
+                              <p className="mt-2 text-xs italic text-foreground/60">Note: {item.draft.notes}</p>
                             ) : null}
                           </div>
 
@@ -482,7 +758,7 @@ export default function OrderPage() {
                             type="button"
                             onClick={() => removeCartItem(item.id)}
                             className="text-foreground/50 transition hover:text-primary"
-                            aria-label={`Rimuovi ${item.name}`}
+                            aria-label={`Rimuovi ${cartItemTitle(item)}`}
                           >
                             <Trash2 size={16} />
                           </button>
@@ -651,30 +927,32 @@ export default function OrderPage() {
                 </div>
 
                 {feedback ? (
-                  <div className="mt-4 flex items-start gap-2 rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-foreground/80">
+                  <div
+                    className={`mt-4 flex items-start gap-2 rounded-2xl px-4 py-3 text-sm ${
+                      feedbackTone === "error"
+                        ? "border border-red-500/30 bg-red-500/10 text-foreground/90"
+                        : feedbackTone === "success"
+                          ? "border border-primary/20 bg-primary/10 text-foreground/85"
+                          : "border border-border bg-background/40 text-foreground/80"
+                    }`}
+                  >
                     <Check size={16} className="mt-0.5 text-primary" />
                     <span>{feedback}</span>
                   </div>
                 ) : null}
 
-                {canCheckout ? (
-                  <a
-                    href={checkoutHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-6 block rounded-2xl bg-primary px-6 py-4 text-center font-display text-sm tracking-wider text-primary-foreground transition hover:brightness-110"
-                  >
-                    INVIA ORDINE SU WHATSAPP
-                  </a>
-                ) : (
-                  <button
-                    type="button"
-                    disabled
-                    className="mt-6 block w-full cursor-not-allowed rounded-2xl bg-muted px-6 py-4 text-center font-display text-sm tracking-wider text-muted-foreground"
-                  >
-                    INVIA ORDINE SU WHATSAPP
-                  </button>
-                )}
+                <button
+                  type="button"
+                  disabled={!canCheckout || isSubmitting}
+                  onClick={handleCheckout}
+                  className={`mt-6 block w-full rounded-2xl px-6 py-4 text-center font-display text-sm tracking-wider transition ${
+                    canCheckout && !isSubmitting
+                      ? "bg-primary text-primary-foreground hover:brightness-110"
+                      : "cursor-not-allowed bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {isSubmitting ? "PREPARAZIONE ORDINE..." : "INVIA ORDINE"}
+                </button>
 
                 <p className="mt-3 text-xs leading-relaxed text-foreground/55">
                   Per inviare l'ordine servono almeno nome, telefono e indirizzo se scegli la consegna.
